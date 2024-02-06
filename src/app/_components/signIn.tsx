@@ -20,9 +20,9 @@ const SignIn = () => {
 	const [password, setPassword] = useState<string>("");
 	// const [error, setError] = useState<string | any>("");
 	// const { resend, error2, isLoading2 } = useResend();
-	const [show, setShow] = useState<any>({ password: false });
+	const [show, setShow] = useState({ password: false });
 
-	const handleSubmit = async(e: any) => {
+	const handleSubmit = async(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.preventDefault();
 		const signInData = await signIn("credentials", {email: email, password: password})
 

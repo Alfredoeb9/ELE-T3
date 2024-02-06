@@ -2,6 +2,7 @@
 // import { options } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
+import Error from "next/error";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -31,7 +32,9 @@ const AppLogoutProvider = ({ children }: {children: React.ReactNode}) => {
             window.removeEventListener(item, resetTimer);
         });
         // logs out user
-        logoutAction();
+        logoutAction().catch((error: Error) => {
+            console.log("Error", error)
+        })
         }, 300000); // 300000ms = 5mins. You can change the time.
     };
   
@@ -59,10 +62,15 @@ const AppLogoutProvider = ({ children }: {children: React.ReactNode}) => {
     }, []);
   
     // logs out user by clearing out auth token in localStorage and redirecting url to /signin page.
-    const logoutAction = () => {
+    const logoutAction = async () => {
         // localStorage.clear();
-        signOut();
-        router.push("/auth/sign-in");
+        try {
+            await signOut();
+            router.push("/auth/sign-in");
+        } catch (error) {
+            console.log("error", error)
+        }
+        
     };
   
     return [children, loadModal];
