@@ -14,17 +14,17 @@ export const userRouter = createTRPCRouter({
   //   }),
 
   create: publicProcedure
-    .input(z.object({ email: z.string().min(1), password: z.string().min(1) }))
+    .input(z.object({ email: z.string().min(1), password: z.string().min(1), username: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       // simulate a slow db call
       // await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // await ctx.db.insert(users).values({
-      //   id: crypto.randomUUID(),
-      //   email: input.email,
-      //   password: input.password
-        
-      // });
+      await ctx.db.insert(users).values({
+        id: crypto.randomUUID(),
+        email: input.email,
+        password: input.password,
+        username: input.username
+      });
     }),
 
   getLatest: publicProcedure.query(({ ctx }) => {

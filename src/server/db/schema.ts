@@ -24,7 +24,7 @@ export const createTable = mysqlTableCreator((name) => `t3-ele_${name}`);
 
 export const users = createTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
-  username: varchar("username", { length: 255 }),
+  username: varchar("username", { length: 255 }).unique().default(`anon${crypto.randomUUID()}`),
   firstName: varchar("firstName", { length: 255 }),
   lastName: varchar("lastName", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull(),

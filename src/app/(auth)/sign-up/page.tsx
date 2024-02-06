@@ -152,6 +152,7 @@ export default function SignUp() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
 
   const createUser = api.user.create.useMutation({
     onSuccess: () => {
@@ -167,6 +168,7 @@ export default function SignUp() {
         createUser.mutate({
             email,
             password,
+            username
         });
       }}
       className="flex flex-col gap-2"
@@ -184,6 +186,14 @@ export default function SignUp() {
         placeholder="johndoe@gmail.com"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        className="w-full rounded-full px-4 py-2 text-black"
+      />
+
+      <input
+        type="text"
+        placeholder="johndoe@gmail.com"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
         className="w-full rounded-full px-4 py-2 text-black"
       />
       <button
