@@ -9,7 +9,7 @@ import { db } from "@/server/db";
 // import { login } from "../src/app/redux/features/AuthContext";
 import { compare } from "bcrypt";
 // import { User } from "@prisma/client";
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, User } from "next-auth";
 import validator from 'validator';
 import { api } from "@/trpc/server";
 import { eq } from "drizzle-orm";
@@ -33,48 +33,36 @@ export const options: NextAuthOptions = {
               password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                console.log("cred", credentials)
                 // Add logic here to look up the user from the credentials supplied
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Email and or password is not registered");
                 }
 
-                // if (!validator.isEmail(credentials?.email )) throw new Error("Please provide a proper email");
-
-                // const existingUserByEmail = await db.user.findUnique({
-                //     where: {
-                //         email: credentials.email,
-                //     }
-                // });
+                if (!validator.isEmail(credentials?.email )) throw new Error("Please provide a proper email");
 
                 const existingUserByEmail = await db.select().from(users).where(eq(users.email, credentials.email))
+                                
+                if (!existingUserByEmail[0]){
+                    throw new Error("Email and or password is not registered");
+                }
 
-                console.log("sdf", existingUserByEmail)
+                const passwordMatch = await compare(credentials.password, existingUserByEmail[0].password);
 
-                // console.log("dfa", existingUserByEmail.)
-                
-                // if (!existingUserByEmail){
-                //     throw new Error("Email and or password is not registered");
-                // }
+                if (!passwordMatch) {
+                    throw new Error("Email and or password is not registered");
+                }
 
-                // const passwordMatch = await compare(credentials.password, existingUserByEmail.password);
-
-                // if (!passwordMatch) {
-                //     throw new Error("Email and or password is not registered");
-                // }
-
-                // if (existingUserByEmail.isVerified == false) {
-                //     throw new Error('Email is not verified, Please verify email!')
-                //     // return NextResponse.json({ user: null, message: "Email is not verified, Please verify email!"}, { status: 500 })
-                // };
+                if (existingUserByEmail[0].isVerified == false) {
+                    throw new Error('Email is not verified, Please verify email!')
+                    // return NextResponse.json({ user: null, message: "Email is not verified, Please verify email!"}, { status: 500 })
+                };
 
                 return {
-                    id: "test"
-                    // id: `${existingUserByEmail}`,
-                    // username: existingUserByEmail.username,
-                    // email: existingUserByEmail.email,
-                    // firstName: existingUserByEmail.firstName,
-                    // lastName: existingUserByEmail.lastName
+                    id: `${existingUserByEmail[0].id}`,
+                    username: existingUserByEmail[0].username!,
+                    email: existingUserByEmail[0].email,
+                    firstName: existingUserByEmail[0].firstName!,
+                    lastName: existingUserByEmail[0].lastName!
                 }
             }
         })
@@ -92,38 +80,42 @@ export const options: NextAuthOptions = {
         signIn: "/sign-in"
     },
     callbacks: {
-        async jwt({token, account, user}) {   
+        jwt({token, account, user}) {   
             if (user){
                 return {
                     ...token,
-                    // username: (user as unknown as User).username,
-                    // firstName: user.firstName,
-                    // lastName: user.lastName
+                    id: (user as unknown as User).id,
+                    username: (user as unknown as User).username,
+                    firstName: (user as unknown as User).firstName,
+                    lastName: (user as unknown as User).lastName
                 }
             }  
             if (account) {
                 token.accessToken = account.access_token;
                 token.id = token.id;
-                // token.username = (user as unknown as User).username;
-                // token.firstName = user.firstName,
-                // token.lastName = user.lastName
-
+                token.username = (user as unknown as User).username;
+                token.firstName = (user as unknown as User).firstName,
+                token.lastName = (user as unknown as User).lastName
             }
 
             return token
         },
-        async session({session, token}) {
-            return {
-                ...session,
-                
-                user: {
-                    ...session.user,
-                    // username: token.username,
-                    // firstName: token.firstName,
-                    // lastName: token.lastName
+        session({session, token, user}) {
+            if (token) {            
+                return {
+                    ...session,
                     
+                    user: {
+                        ...session.user,
+                        id: token.id,
+                        username: token.username,
+                        firstName: token.firstName,
+                        lastName: token.lastName
+                        
+                    }
                 }
             }
+            return session
         },
     },
     events: {
