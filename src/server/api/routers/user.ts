@@ -14,16 +14,30 @@ export const userRouter = createTRPCRouter({
   //   }),
 
   create: publicProcedure
-    .input(z.object({ email: z.string().min(1), password: z.string().min(1), username: z.string().min(1) }))
+    .input(z.object({ 
+      email: z.string().min(1), 
+      password: z.string().min(1), 
+      username: z.string().min(1),
+      firstName: z.string().min(1),
+      lastName: z.string().min(1),
+    }))
     .mutation(async ({ ctx, input }) => {
       // simulate a slow db call
       // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      if (input.email.length <= 0) throw new Error("Please provide a proper email")
+      if (input.password.length <= 0) throw new Error("Please provide a proper password");
+      if (input.username.length <= 0) throw new Error("Please provide a proper username");
+      if (input.firstName.length <= 0) throw new Error("Please provide a proper first name");
+      if (input.lastName.length <= 0) throw new Error("Please provide a proper last name");
 
       await ctx.db.insert(users).values({
         id: crypto.randomUUID(),
         email: input.email,
         password: input.password,
-        username: input.username
+        username: input.username,
+        firstName: input.firstName,
+        lastName: input.lastName,
       });
     }),
 
